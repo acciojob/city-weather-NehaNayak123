@@ -1,66 +1,50 @@
-import React, { useEffect, useState } from "react";
-import "./../styles/App.css";
-import axios from "axios";
-import "regenerator-runtime/runtime";
-const App = () => {
-  const [query, setCity] = useState("");
-  const [input, setInput] = useState("");
-  const [weather, setWeather] = useState({});
-  const [error, setError] = useState("");
+import React, { useState } from "react";
 
-  const apiKey = "86f1c2dff7e908d7ee7762ac40981af6";
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${query}&appid=${apiKey}`;
+const API_KEY = "e467712b257e418838be97cc881a71de";
 
-  const fetchApi = async () => {
-    try {
-      const response = await axios.get(url);
-       console.log(response.data);
-      setWeather(response.data);
-      setError("");
-    } catch (error) {
-      console.error("Error fetching data: ", error);
-      // setError("Error fetching data. Please try again.");
-      setWeather({});
+function App() {
+  const [query, setQuery] = useState("");
+  const [weather, setWeather] = useState(null);
+
+  const search =  (e) => {
+    if (e.key === "Enter") {
+      fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${query}&appid=${API_KEY}`
+      ).then((res)=>res.json()).then((resData)=>setWeather(resData))
+      
+      setQuery("");
     }
   };
 
-  useEffect(() => {
-    fetchApi();
-    console.log("called fetchAPI");
-   // return () => console.log("cleanup");
-  }, [query]);
-
-  const handleChange = (e) => {
-    setInput(e.target.value);
-  };
-
-  const display = () => {
-    setCity(input);
-    setInput("");
-  };
+  const kelvinToFahrenheit = (k) => ((k - 273.15) * 9) / 5 + 32;
 
   return (
-    <div className="main" id="main">
-      <div className="search">
-        <input type="text" value={input} onChange={handleChange} />
-        <button onClick={display}>Search</button>
-      </div>
-      <div className="weather">
-        {error && <h2>{error}</h2>}
-        {!error && weather.main && (
-          <>
-            <h1>{query}</h1>
-            <h2>{weather.main.temp}°F</h2>
-            <h3>{weather.weather[0].description}</h3>
+    <div className="app">
+      <input
+        type="text"
+        className="search"
+        placeholder="Enter a city"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyPress={search}
+      />
+      {weather && (
+        <div className="weather">
+          <div className="city">{weather.name}</div>
+          <div className="temperature">
+            {Math.round(kelvinToFahrenheit(weather.main.temp))}°F
+          </div>
+          <div className="description">{weather.weather[0].description}</div>
+          <div className="icon">
             <img
               src={`http://openweathermap.org/img/w/${weather.weather[0].icon}.png`}
-              alt="cloud image"
+              alt={weather.weather[0].description}
             />
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+}
 
 export default App;
